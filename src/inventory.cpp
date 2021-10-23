@@ -1,8 +1,7 @@
 //============================================================================
 // Name        : inventory.cpp
-// Author      : 
-// Version     :
-// Copyright   : Your copyright notice
+// Assignment  : #4
+// Author      : Dylan Harper
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
@@ -92,20 +91,48 @@ class Order{
 private:
 	int _ordnum;
 	string _cname;
+	bool _shipped;
 	vector<string> _parts;
 	vector<int> _qtys;
 public:
 	Order();
 	void setOrdnum(int o){_ordnum = o;}
 	void setName(string c){_cname = c;}
+	void setShipped(bool s) {_shipped = s;}
 	int getOrdnum(){return _ordnum;}
 	string getName(){return _cname;}
+	bool getShipped() {return _shipped;}
 	void addPart(string p, int q) {
 		_parts.push_back(p);
 		_qtys.push_back(q);
 	}
+	bool deletePart(string);
+	bool modQty(string, int);
 	void print(ofstream&);
 };
+
+bool Order::deletePart(string p) {
+	bool found = false;
+	for (int i = 0; (i < _parts.size() && !found); i++){
+		if (_parts[i] == p){
+			found = true;
+			_parts.erase(_parts.begin() + i);
+			_qtys.erase(_qtys.begin() + i);
+		}
+	}
+	return found;
+}
+
+bool Order::modQty(string p, int q) {
+	bool found = false;
+	for (int i = 0; (i < _parts.size() && !found); i++){
+		if (_parts[i] == p){
+			found = true;
+			_qtys[i] = q;
+		}
+	}
+	return found;
+}
 
 void Order::print(ofstream& os) {
 

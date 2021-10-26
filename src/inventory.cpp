@@ -10,6 +10,8 @@
 #include <string>
 using namespace std;
 
+//CLASS PART
+
 class Part{
 private:
 	string _partnum;
@@ -22,6 +24,8 @@ public:
 	void setStock(int s){_stockqty = s;}
 	int getStock() const {return _stockqty;}
 };
+
+//CLASS INVENTORY
 
 class Inventory{
 private:
@@ -44,8 +48,7 @@ Inventory::~Inventory() {
 
 Inventory::Inventory(const Inventory& b) {
 	for(int i = 0; i < b._inv.size(); i++) {
-		_inv.push_back(new Part(b._inv[i]->getPartNum(), b._inv[i]->getStock()));
-	//	_inv.push_back(new Part(*(b._inv[i])));
+		_inv.push_back(new Part(*(b._inv[i])));
 	}
 }
 
@@ -83,10 +86,11 @@ void Inventory::printInventory(ostream& os) const {
 	for (int i = 0; i < _inv.size(); i++){
 		os << "Part: " << _inv[i]->getPartNum() <<
 			"  Stock Qty: " << _inv[i]->getStock() << endl;
-		os << &*_inv[i] << endl;
-		os << _inv[i] << endl;
 	}
 }
+
+//CLASS ORDER
+
 class Order{
 private:
 	int _ordnum;
@@ -95,7 +99,8 @@ private:
 	vector<string> _parts;
 	vector<int> _qtys;
 public:
-	Order();
+	Order(){}
+	Order(int, string, bool){}
 	void setOrdnum(int o){_ordnum = o;}
 	void setName(string c){_cname = c;}
 	void setShipped(bool s) {_shipped = s;}
@@ -108,8 +113,14 @@ public:
 	}
 	bool deletePart(string);
 	bool modQty(string, int);
-	void print(ofstream&);
+	void printOrder(ostream&) const;
 };
+
+Order::Order(int ordnum, string cname, bool shipped) {
+	_ordnum = ordnum;
+	_cname = cname;
+	_shipped = shipped;
+}
 
 bool Order::deletePart(string p) {
 	bool found = false;
@@ -134,17 +145,170 @@ bool Order::modQty(string p, int q) {
 	return found;
 }
 
-void Order::print(ofstream& os) {
+void Order::printOrder(ostream& os) const {
 
 }
+
+//CLASS ALLORDERS
 
 class AllOrders{
 private:
 	vector<Order*> _orders;
 public:
-
+	AllOrders(){}
+	~AllOrders();
+	AllOrders(const AllOrders& b);
+	const AllOrders& operator=(const AllOrders& b);
+	void addOrder(int, string, bool);
+	bool deleteOrder(int);
 };
 
+AllOrders::~AllOrders() {
+	for(int i = 0; i < _orders.size(); i++) {
+		delete _orders[i];
+	}
+}
+
+AllOrders::AllOrders(const AllOrders& b) {
+	for(int i = 0; i < b._orders.size(); i++) {
+		_orders.push_back(new Order(*(b._orders[i])));
+	}
+}
+
+const AllOrders& AllOrders::operator=(const AllOrders& b) {
+	if(this != &b) {
+		for(int i = 0; i < _orders.size(); i++) {
+			delete _orders[i];
+		}
+		for(int i = 0; i < b._orders.size(); i++) {
+			_orders.push_back(new Order(*(b._orders[i])));
+		}
+	}
+	return *this;
+}
+
+void AllOrders::addOrder(int ordnum, string cname, bool shipped) {
+	Order* order = new Order(ordnum, cname, shipped);
+	_orders.push_back(order);
+}
+
+bool AllOrders::deleteOrder(int ordnum) {
+	bool found = false;
+	for(int i = 0; (i < _orders.size() && !found); i++) {
+		if(_orders[i]->getOrdnum() == ordnum) {
+			found = true;
+			delete _orders[i];
+			_orders.erase(_orders.begin() + i);
+		}
+	}
+	return found;
+}
+
+//CLASS ADDRESS
+
+class Address {
+private:
+	string _street;
+	string _city;
+	string _state;
+	string _zip;
+public:
+	Address(){}
+	Address(string, string, string , string){}
+	void setStreet(string s) {_street = s;}
+	void setCity(string c) {_city = c;}
+	void setState(string s) {_state = s;}
+	void setZip(string z) {_zip = z;}
+	string getStreet() {return _street;}
+	string getCity() {return _city;}
+	string getState() {return _state;}
+	string getZip() {return _zip;}
+};
+
+Address::Address(string street, string city, string state, string zip) {
+	_street = street;
+	_city = city;
+	_state = state;
+	_zip = zip;
+}
+
+//CLASS CUSTOMER
+
+class Customer {
+private:
+	string _cnum;
+	Address _addr;
+public:
+	Customer(){}
+	Customer(string, string, string, string, string){}
+	void setCnum(string c) {_cnum = c;}
+	string getCnum() {return _cnum;}
+};
+
+Customer::Customer(string cnum, string str, string cit, string st, string zip) {
+	_cnum = cnum;
+	_addr.setStreet(str);
+	_addr.setCity(cit);
+	_addr.setState(st);
+	_addr.setZip(zip);
+}
+
+//CLASS ALLCUSTOMERS
+
+class AllCustomers {
+private:
+	vector<Customer*> _customers;
+public:
+	AllCustomers(){}
+	~AllCustomers();
+	AllCustomers(const AllCustomers& b);
+	const AllCustomers& operator=(const AllCustomers& b);
+	void addCustomer(string, string, string, string, string);
+	bool deleteCustomer(string);
+};
+
+AllCustomers::~AllCustomers() {
+	for(int i = 0; i < _customers.size(); i++) {
+		delete _customers[i];
+	}
+}
+
+AllCustomers::AllCustomers(const AllCustomers& b) {
+	for(int i = 0; i < b._customers.size(); i++) {
+		_customers.push_back(new Customer(*(b._customers[i])));
+	}
+}
+
+const AllCustomers& AllCustomers::operator=(const AllCustomers& b) {
+	if(this != &b) {
+		for(int i = 0; i < _customers.size(); i++) {
+			delete _customers[i];
+		}
+		for(int i = 0; i < b._customers.size(); i++) {
+			_customers.push_back(new Customer(*(b._customers[i])));
+		}
+	}
+	return *this;
+}
+
+void AllCustomers::addCustomer(string cnum, string str, string cit, string st, string zip) {
+	Customer* cstmr = new Customer(cnum, str, cit, st, zip);
+	_customers.push_back(cstmr);
+}
+
+bool AllCustomers::deleteCustomer(string cnum) {
+	bool found = false;
+	for(int i = 0; (i < _customers.size() && !found); i++) {
+		if(_customers[i]->getCnum() == cnum) {
+			found = true;
+			delete _customers[i];
+			_customers.erase(_customers.begin() + i);
+		}
+	}
+	return found;
+}
+
+//MAIN
 
 int main() {
 	Inventory inv;

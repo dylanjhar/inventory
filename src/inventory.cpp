@@ -85,7 +85,7 @@ void Inventory::printInventory(ostream& os) const {
 	os << "\nCurrent Inventory File" << endl;
 	for (int i = 0; i < _inv.size(); i++){
 		os << "Part: " << _inv[i]->getPartNum() <<
-			"  Stock Qty: " << _inv[i]->getStock() << endl;
+			" Stock Qty: " << _inv[i]->getStock() << endl;
 	}
 }
 
@@ -94,18 +94,18 @@ void Inventory::printInventory(ostream& os) const {
 class Order{
 private:
 	int _ordnum;
-	string _cname;
+	string _cnum;
 	bool _shipped;
 	vector<string> _parts;
 	vector<int> _qtys;
 public:
 	Order(){}
-	Order(int, string, bool){}
+	Order(int, string, bool);
 	void setOrdnum(int o){_ordnum = o;}
-	void setName(string c){_cname = c;}
+	void setName(string c){_cnum = c;}
 	void setShipped(bool s) {_shipped = s;}
 	int getOrdnum(){return _ordnum;}
-	string getName(){return _cname;}
+	string getName(){return _cnum;}
 	bool getShipped() {return _shipped;}
 	void addPart(string p, int q) {
 		_parts.push_back(p);
@@ -116,9 +116,9 @@ public:
 	void printOrder(ostream&) const;
 };
 
-Order::Order(int ordnum, string cname, bool shipped) {
+Order::Order(int ordnum, string cnum, bool shipped) {
 	_ordnum = ordnum;
-	_cname = cname;
+	_cnum = cnum;
 	_shipped = shipped;
 }
 
@@ -146,7 +146,12 @@ bool Order::modQty(string p, int q) {
 }
 
 void Order::printOrder(ostream& os) const {
-
+	os << "Order number: " << _ordnum << endl;
+	os << "Customer number: " << _cnum << endl;
+	os << "Shipped: " << _shipped << endl;
+	for(int i = 0; i < _parts.size(); i++) {
+		os << "Part: " << _parts[i] << " Quantity: " << _qtys[i] << endl;
+	}
 }
 
 //CLASS ALLORDERS
@@ -161,6 +166,7 @@ public:
 	const AllOrders& operator=(const AllOrders& b);
 	void addOrder(int, string, bool);
 	bool deleteOrder(int);
+	void printOrders(ostream&) const;
 };
 
 AllOrders::~AllOrders() {
@@ -204,6 +210,13 @@ bool AllOrders::deleteOrder(int ordnum) {
 	return found;
 }
 
+void AllOrders::printOrders(ostream& os) const {
+	os << "\nCurrent Order File" << endl;
+	for(int i = 0; i < _orders.size(); i++) {
+		_orders[i]->printOrder(os);
+	}
+}
+
 //CLASS ADDRESS
 
 class Address {
@@ -214,7 +227,7 @@ private:
 	string _zip;
 public:
 	Address(){}
-	Address(string, string, string , string){}
+	Address(string, string, string, string);
 	void setStreet(string s) {_street = s;}
 	void setCity(string c) {_city = c;}
 	void setState(string s) {_state = s;}
@@ -223,6 +236,7 @@ public:
 	string getCity() {return _city;}
 	string getState() {return _state;}
 	string getZip() {return _zip;}
+	void printAddress(ostream&) const;
 };
 
 Address::Address(string street, string city, string state, string zip) {
@@ -230,6 +244,13 @@ Address::Address(string street, string city, string state, string zip) {
 	_city = city;
 	_state = state;
 	_zip = zip;
+}
+
+void Address::printAddress(ostream& os) const {
+	os << "Street: " << _street;
+	os << "City: " << _city;
+	os << "State: " << _state;
+	os << "Zip: " << _zip;
 }
 
 //CLASS CUSTOMER
@@ -240,9 +261,10 @@ private:
 	Address _addr;
 public:
 	Customer(){}
-	Customer(string, string, string, string, string){}
+	Customer(string, string, string, string, string);
 	void setCnum(string c) {_cnum = c;}
 	string getCnum() {return _cnum;}
+	void printCustomer(ostream&) const;
 };
 
 Customer::Customer(string cnum, string str, string cit, string st, string zip) {
@@ -251,6 +273,11 @@ Customer::Customer(string cnum, string str, string cit, string st, string zip) {
 	_addr.setCity(cit);
 	_addr.setState(st);
 	_addr.setZip(zip);
+}
+
+void Customer::printCustomer(ostream& os) const {
+	os << "Customer number: " << _cnum << endl;
+	_addr.printAddress(os);
 }
 
 //CLASS ALLCUSTOMERS
@@ -265,6 +292,7 @@ public:
 	const AllCustomers& operator=(const AllCustomers& b);
 	void addCustomer(string, string, string, string, string);
 	bool deleteCustomer(string);
+	void printCustomers(ostream&) const;
 };
 
 AllCustomers::~AllCustomers() {
@@ -306,6 +334,13 @@ bool AllCustomers::deleteCustomer(string cnum) {
 		}
 	}
 	return found;
+}
+
+void AllCustomers::printCustomers(ostream& os) const {
+	os << "\nCurrent Customer File" << endl;
+	for(int i = 0; i < _customers.size(); i++) {
+		_customers[i]->printCustomer(os);
+	}
 }
 
 //MAIN

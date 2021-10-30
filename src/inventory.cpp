@@ -6,6 +6,8 @@
 //============================================================================
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
 using namespace std;
@@ -15,13 +17,16 @@ using namespace std;
 class Part{
 private:
 	string _partnum;
+	string _desc;
 	int _stockqty;
 public:
 	Part(){}
-	Part(string p, int s): _partnum(p), _stockqty(s){}
-	void setPartNum(string p){_partnum = p;}
+	Part(string p, string d, int s): _partnum(p), _desc(d), _stockqty(s){}
+	void setPartNum(string p) {_partnum = p;}
 	string getPartNum() const {return _partnum;}
-	void setStock(int s){_stockqty = s;}
+	void setDesc(string d) {_desc = d;}
+	string getDesc() const {return _desc;}
+	void setStock(int s) {_stockqty = s;}
 	int getStock() const {return _stockqty;}
 };
 
@@ -35,7 +40,7 @@ public:
 	~Inventory();
 	Inventory(const Inventory& b);
 	const Inventory& operator=(const Inventory& b);
-	void addPart(string, int);
+	void addPart(string, string, int);
 	bool deletePart(string);
 	void printInventory(ostream&) const;
 };
@@ -64,8 +69,8 @@ const Inventory& Inventory::operator=(const Inventory& b) {
 	return *this;
 }
 
-void Inventory::addPart(string p, int s){
-	Part* ptr = new Part(p, s);
+void Inventory::addPart(string p, string d, int s){
+	Part* ptr = new Part(p, d, s);
 	_inv.push_back(ptr);
 }
 
@@ -345,19 +350,41 @@ void AllCustomers::printCustomers(ostream& os) const {
 
 //MAIN
 
+void loadData(Inventory& inv, AllOrders& ords, AllCustomers& custs, ifstream& infile) {
+	string line, partNum, desc, stock;
+
+	getline(infile, line);
+	stringstream str(line);
+
+	getline(str, partNum, ',');
+	getline(str, desc, ',');
+	getline(str, stock, ',');
+	while(partNum != '0' && desc != '0' && stock != '0') {
+		inv.addPart(partNum, desc, stoi(stock));
+
+		getline(infile, line);
+		stringstream str(line);
+
+		getline(str, partNum, ',');
+		getline(str, desc, ',');
+		getline(str, stock, ',');
+	}
+
+}
+
 int main() {
 	Inventory inv;
-	inv.addPart("p100", 10);
-	inv.addPart("p200", 20);
-	inv.addPart("p300", 30);
-	inv.printInventory(cout);
-	inv.deletePart("p200");
-	inv.printInventory(cout);
-
-	Inventory inv2 = inv;
-	inv.printInventory(cout);
-
 	AllOrders ords;
+	AllCustomers custs;
+
+	string file;
+	cout << "Enter the data file: " << endl;
+	cin >> file;
+	ifstream infile(file);
+	if(!infile) {
+		cout << "Unable to get file" << endl;
+		exit(-1);
+	}
 
 	return 0;
 }

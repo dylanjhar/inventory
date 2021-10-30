@@ -105,13 +105,13 @@ private:
 	vector<int> _qtys;
 public:
 	Order(){}
-	Order(int, string, bool);
+	Order(int, string);
 	void setOrdnum(int o){_ordnum = o;}
 	void setName(string c){_cnum = c;}
-	void setShipped(bool s) {_shipped = s;}
+	void shipped() {_shipped = true;}
 	int getOrdnum(){return _ordnum;}
 	string getName(){return _cnum;}
-	bool getShipped() {return _shipped;}
+	bool isShipped() {return _shipped;}
 	void addPart(string p, int q) {
 		_parts.push_back(p);
 		_qtys.push_back(q);
@@ -121,10 +121,10 @@ public:
 	void printOrder(ostream&) const;
 };
 
-Order::Order(int ordnum, string cnum, bool shipped) {
+Order::Order(int ordnum, string cnum) {
 	_ordnum = ordnum;
 	_cnum = cnum;
-	_shipped = shipped;
+	_shipped = false;
 }
 
 bool Order::deletePart(string p) {
@@ -169,7 +169,7 @@ public:
 	~AllOrders();
 	AllOrders(const AllOrders& b);
 	const AllOrders& operator=(const AllOrders& b);
-	void addOrder(int, string, bool);
+	void addOrder(int, string);
 	bool deleteOrder(int);
 	void printOrders(ostream&) const;
 };
@@ -198,8 +198,8 @@ const AllOrders& AllOrders::operator=(const AllOrders& b) {
 	return *this;
 }
 
-void AllOrders::addOrder(int ordnum, string cname, bool shipped) {
-	Order* order = new Order(ordnum, cname, shipped);
+void AllOrders::addOrder(int ordnum, string cnum) {
+	Order* order = new Order(ordnum, cnum);
 	_orders.push_back(order);
 }
 
@@ -350,9 +350,8 @@ void AllCustomers::printCustomers(ostream& os) const {
 
 //MAIN
 
-void loadData(Inventory& inv, AllOrders& ords, AllCustomers& custs, ifstream& infile) {
+void loadInv(Inventory& inv, ifstream& infile) {
 	string line, partNum, desc, stock;
-
 	getline(infile, line);
 	stringstream str(line);
 
@@ -369,7 +368,49 @@ void loadData(Inventory& inv, AllOrders& ords, AllCustomers& custs, ifstream& in
 		getline(str, desc, ',');
 		getline(str, stock, ',');
 	}
+}
 
+void loadCusts(AllCustomers& custs, ifstream& infile) {
+	string line, custNum, street, city, state, zip;
+	getline(infile, line);
+	stringstream str(line);
+
+	getline(str, custNum, ',');
+	getline(str, street, ',');
+	getline(str, city, ',');
+	getline(str, state, ',');
+	getline(str, zip, ',');
+	while(custNum != '0' && street != '0' && city != '0' && state != '0' && zip != '0') {
+		custs.addCustomer(custNum, street, city, state, zip);
+		getline(infile, line);
+		stringstream str(line);
+
+		getline(str, custNum, ',');
+		getline(str, street, ',');
+		getline(str, city, ',');
+		getline(str, state, ',');
+		getline(str, zip, ',');
+	}
+}
+
+void loadOrds(AllOrders& ords, ifstream& infile) {
+	string line, ordNum, custNum, partNum, qty;
+	getline(infile, line);
+	stringstream str(line);
+
+	getline(str, ordNum, ',');
+	getline(str, custNum, ',');
+	while(ordNum != '0' && custNum != '0') {
+		getline(infile, line);
+		stringstream str(line);
+
+		getline(str, partNum, ',');
+		getline(str, qty, ',');
+		while(partNum != '0' && qty != '0') {
+			ords.addOrder(stoi(ordNum), custNum);
+
+		}
+	}
 }
 
 int main() {

@@ -107,10 +107,10 @@ public:
 	Order(){}
 	Order(int, string);
 	void setOrdnum(int o){_ordnum = o;}
-	void setName(string c){_cnum = c;}
+	void setCnum(string c){_cnum = c;}
 	void shipped() {_shipped = true;}
 	int getOrdnum(){return _ordnum;}
-	string getName(){return _cnum;}
+	string getCnum(){return _cnum;}
 	bool isShipped() {return _shipped;}
 	void addPart(string p, int q) {
 		_parts.push_back(p);
@@ -170,6 +170,7 @@ public:
 	AllOrders(const AllOrders& b);
 	const AllOrders& operator=(const AllOrders& b);
 	void addOrder(int, string);
+	bool addPart(int, string, string, int);
 	bool deleteOrder(int);
 	void printOrders(ostream&) const;
 };
@@ -201,6 +202,17 @@ const AllOrders& AllOrders::operator=(const AllOrders& b) {
 void AllOrders::addOrder(int ordnum, string cnum) {
 	Order* order = new Order(ordnum, cnum);
 	_orders.push_back(order);
+}
+
+bool AllOrders::addPart(int ordnum, string cnum, string partNum, int qty) {
+	bool found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			_orders[i]->addPart(partNum, qty);
+		}
+	}
+	return found;
 }
 
 bool AllOrders::deleteOrder(int ordnum) {
@@ -353,63 +365,73 @@ void AllCustomers::printCustomers(ostream& os) const {
 void loadInv(Inventory& inv, ifstream& infile) {
 	string line, partNum, desc, stock;
 	getline(infile, line);
-	stringstream str(line);
+	stringstream ss(line);
 
-	getline(str, partNum, ',');
-	getline(str, desc, ',');
-	getline(str, stock, ',');
-	while(partNum != '0' && desc != '0' && stock != '0') {
+	getline(ss, partNum, ',');
+	getline(ss, desc, ',');
+	getline(ss, stock, ',');
+	while(partNum != "0" && desc != "0" && stock != "0") {
 		inv.addPart(partNum, desc, stoi(stock));
 
 		getline(infile, line);
-		stringstream str(line);
+		stringstream ss(line);
 
-		getline(str, partNum, ',');
-		getline(str, desc, ',');
-		getline(str, stock, ',');
+		getline(ss, partNum, ',');
+		getline(ss, desc, ',');
+		getline(ss, stock, ',');
 	}
 }
 
 void loadCusts(AllCustomers& custs, ifstream& infile) {
 	string line, custNum, street, city, state, zip;
 	getline(infile, line);
-	stringstream str(line);
+	stringstream ss(line);
 
-	getline(str, custNum, ',');
-	getline(str, street, ',');
-	getline(str, city, ',');
-	getline(str, state, ',');
-	getline(str, zip, ',');
-	while(custNum != '0' && street != '0' && city != '0' && state != '0' && zip != '0') {
+	getline(ss, custNum, ',');
+	getline(ss, street, ',');
+	getline(ss, city, ',');
+	getline(ss, state, ',');
+	getline(ss, zip, ',');
+	while(custNum != "0" && street != "0" && city != "0" && state != "0" && zip != "0") {
 		custs.addCustomer(custNum, street, city, state, zip);
 		getline(infile, line);
-		stringstream str(line);
+		stringstream ss(line);
 
-		getline(str, custNum, ',');
-		getline(str, street, ',');
-		getline(str, city, ',');
-		getline(str, state, ',');
-		getline(str, zip, ',');
+		getline(ss, custNum, ',');
+		getline(ss, street, ',');
+		getline(ss, city, ',');
+		getline(ss, state, ',');
+		getline(ss, zip, ',');
 	}
 }
 
 void loadOrds(AllOrders& ords, ifstream& infile) {
 	string line, ordNum, custNum, partNum, qty;
 	getline(infile, line);
-	stringstream str(line);
+	stringstream ss(line);
 
-	getline(str, ordNum, ',');
-	getline(str, custNum, ',');
-	while(ordNum != '0' && custNum != '0') {
+	getline(ss, ordNum, ',');
+	getline(ss, custNum, ',');
+	while(ordNum != "0" && custNum != "0") {
+		ords.addOrder(stoi(ordNum), custNum);
 		getline(infile, line);
-		stringstream str(line);
+		stringstream ss(line);
 
-		getline(str, partNum, ',');
-		getline(str, qty, ',');
-		while(partNum != '0' && qty != '0') {
-			ords.addOrder(stoi(ordNum), custNum);
+		getline(ss, partNum, ',');
+		getline(ss, qty, ',');
+		while(partNum != "0" && qty != "0") {
+			ords.addPart(stoi(ordNum), custNum, partNum, stoi(qty));
+			getline(infile, line);
+			stringstream ss(line);
 
+			getline(ss, partNum, ',');
+			getline(ss, qty, ',');
 		}
+		getline(infile, line);
+		stringstream ss2(line);
+
+		getline(ss2, ordNum, ',');
+		getline(ss2, custNum, ',');
 	}
 }
 
@@ -426,6 +448,10 @@ int main() {
 		cout << "Unable to get file" << endl;
 		exit(-1);
 	}
+
+	loadInv(inv, infile);
+	loadCusts(custs, infile);
+	loadOrds(ords, infile);
 
 	return 0;
 }

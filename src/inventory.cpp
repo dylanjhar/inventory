@@ -41,6 +41,7 @@ public:
 	Inventory(const Inventory& b);
 	const Inventory& operator=(const Inventory& b);
 	void addPart(string, string, int);
+	bool modQty(string, int);
 	bool deletePart(string);
 	void printInventory(ostream&) const;
 };
@@ -72,6 +73,17 @@ const Inventory& Inventory::operator=(const Inventory& b) {
 void Inventory::addPart(string p, string d, int s){
 	Part* ptr = new Part(p, d, s);
 	_inv.push_back(ptr);
+}
+
+bool Inventory::modQty(string p, int q) {
+	bool found = false;
+	for (int i = 0; (i < _inv.size() && !found); i++){
+		if (_inv[i]->getPartNum() == p){
+			found = true;
+			_inv[i]->setStock(q);
+		}
+	}
+	return found;
 }
 
 bool Inventory::deletePart(string p){
@@ -582,7 +594,40 @@ void csr(AllOrders& ords) {
 	}
 }
 
-
+void receiver(Inventory& inv) {
+	cout << "Enter number to choose option" << endl;
+	cout << "1) Add part" << endl;
+	cout << "2) Add stock" << endl;
+	cout << "3) Return to main menu" << endl;
+	int option;
+	cin >> option;
+	while(option != 3) {
+		string partNum, desc;
+		int qty;
+		if(option == 1) {
+			cout << "Enter part number: ";
+			cin >> partNum;
+			cout << "Enter description: ";
+			cin >> desc;
+			cout << "Enter quantity: ";
+			cin >> qty;
+			inv.addPart(partNum, desc, qty);
+		} else if(option == 2) {
+			cout << "Enter part number: ";
+			cin >> partNum;
+			cout << "Enter quantity: ";
+			cin >> qty;
+			inv.modQty(partNum, qty);
+		} else {
+			cout << "Not an option" << endl;
+		}
+		cout << "Enter number to choose option" << endl;
+		cout << "1) Add part" << endl;
+		cout << "2) Add stock" << endl;
+		cout << "3) Return to main menu" << endl;
+		cin >> option;
+	}
+}
 
 int main() {
 	Inventory inv;
@@ -613,6 +658,8 @@ int main() {
 	while(option != 5) {
 		if(option == 1) {
 			csr(ords);
+		} else if(option == 2) {
+			receiver(inv);
 		}
 	}
 

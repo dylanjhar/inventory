@@ -171,7 +171,10 @@ public:
 	const AllOrders& operator=(const AllOrders& b);
 	void addOrder(int, string);
 	bool addPart(int, string, string, int);
-	bool deleteOrder(int);
+	bool deletePart(int, string, string);
+	bool modQty(int, string, string, int);
+	bool isShipped(int, string);
+	bool deleteOrder(int, string);
 	void printOrders(ostream&) const;
 };
 
@@ -215,10 +218,43 @@ bool AllOrders::addPart(int ordnum, string cnum, string partNum, int qty) {
 	return found;
 }
 
-bool AllOrders::deleteOrder(int ordnum) {
+bool AllOrders::deletePart(int ordnum, string cnum, string partNum) {
+	bool found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			_orders[i]->deletePart(partNum);
+		}
+	}
+	return found;
+}
+
+bool AllOrders::modQty(int ordnum, string cnum, string partNum, int qty) {
+	bool found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			_orders[i]->modQty(partNum, qty);
+		}
+	}
+	return found;
+}
+
+bool AllOrders::isShipped(int ordnum, string cnum) {
+	bool shipped = false, found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			shipped = _orders[i]->isShipped();
+		}
+	}
+	return shipped;
+}
+
+bool AllOrders::deleteOrder(int ordnum, string cnum) {
 	bool found = false;
 	for(int i = 0; (i < _orders.size() && !found); i++) {
-		if(_orders[i]->getOrdnum() == ordnum) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
 			found = true;
 			delete _orders[i];
 			_orders.erase(_orders.begin() + i);
@@ -435,6 +471,119 @@ void loadOrds(AllOrders& ords, ifstream& infile) {
 	}
 }
 
+void csrAdd(AllOrders& ords) {
+	string custNum, partNum;
+	int ordNum, qty;
+	cout << "Enter order number: ";
+	cin >> ordNum;
+	cout << "Enter customer number: ";
+	cin >> custNum;
+	ords.addOrder(ordNum, custNum);
+	cout << "Enter part number: ";
+	cin >> partNum;
+	cout << "Enter quantity: ";
+	cin >> qty;
+	ords.addPart(ordNum, custNum, partNum, qty);
+	char choice;
+	cout << "Enter another part? (y/n): ";
+	cin >> choice;
+	while(choice != 'n') {
+		if(choice == 'y') {
+			cout << "Enter part number: ";
+			cin >> partNum;
+			cout << "Enter quantity";
+			cin >> qty;
+			ords.addPart(ordNum, custNum, partNum, qty);
+		} else {
+			cout << "Not an option" << endl;
+		}
+		cout << "Enter another part? (y/n): ";
+		cin >> choice;
+	}
+}
+
+void csrMod(AllOrders& ords) {
+	string custNum, partNum;
+	int ordNum, qty;
+	cout << "Enter order number: ";
+	cin >> ordNum;
+	cout << "Enter customer number: ";
+	cin >> custNum;
+	bool shipped = ords.isShipped(ordNum, custNum);
+	if(!shipped) {
+		cout << "Enter number to choose option" << endl;
+		cout << "1) Add part" << endl;
+		cout << "2) Delete part" << endl;
+		cout << "3) Modify quantity" << endl;
+		cout << "4) Return to last menu" << endl;
+		int option;
+		cin >> option;
+		while(option != 4) {
+			cout << "Enter part number: ";
+			cin >> partNum;
+			cout << "Enter quantity: ";
+			cin >> qty;
+			if(option == 1) {
+				ords.addPart(ordNum, custNum, partNum, qty);
+			} else if(option == 2) {
+				ords.deletePart(ordNum, custNum, partNum);
+			} else if(option == 3) {
+				ords.modQty(ordNum, custNum, partNum, qty);
+			} else {
+				cout << "Not an option" << endl;
+			}
+			cout << "Enter number to choose option" << endl;
+			cout << "1) Add part" << endl;
+			cout << "2) Delete part" << endl;
+			cout << "3) Modify quantity" << endl;
+			cout << "4) Return to last menu" << endl;
+			cin >> option;
+		}
+	} else {
+		cout << "Order already shipped" << endl;
+	}
+}
+
+void csr(AllOrders& ords) {
+	cout << "Enter number to choose option" << endl;
+	cout << "1) Add order" << endl;
+	cout << "2) Delete order" << endl;
+	cout << "3) Modify order" << endl;
+	cout << "4) Return to main menu" << endl;
+	int option;
+	cin >> option;
+	while(option != 4) {
+		if(option == 1) {
+			csrAdd(ords);
+		} else if(option == 2) {
+			string custNum;
+			int ordNum;
+			cout << "Enter order number: ";
+			cin >> ordNum;
+			cout << "Enter customer number: ";
+			cin >> custNum;
+			bool shipped = ords.isShipped(ordNum, custNum);
+			if(!shipped) {
+				ords.deleteOrder(ordNum, custNum);
+			} else {
+				cout << "Order already shipped" << endl;
+			}
+		} else if(option == 3) {
+			csrMod(ords);
+		} else {
+			cout << "Not an option" << endl;
+		}
+		cout << "Enter number to choose option" << endl;
+		cout << "1) Add order" << endl;
+		cout << "2) Delete order" << endl;
+		cout << "3) Modify order" << endl;
+		cout << "4) Return to main menu" << endl;
+		cin >> option;
+	}
+}
+
+
+
 int main() {
 	Inventory inv;
 	AllOrders ords;
@@ -452,6 +601,20 @@ int main() {
 	loadInv(inv, infile);
 	loadCusts(custs, infile);
 	loadOrds(ords, infile);
+
+	cout << "Enter number to choose option" << endl;
+	cout << "1) Customer Service Rep" << endl;
+	cout << "2) Warehouse Receiver" << endl;
+	cout << "3) Warehouse Shipper" << endl;
+	cout << "4) Dump Data" << endl;
+	cout << "5) Exit" << endl;
+	int option;
+	cin >> option;
+	while(option != 5) {
+		if(option == 1) {
+			csr(ords);
+		}
+	}
 
 	return 0;
 }

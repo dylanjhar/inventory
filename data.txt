@@ -1,0 +1,8 @@
+w1, short wood block, 52
+0, 0, 0
+1, Short St, Naperville, Illinois, 60540
+0, 0, 0, 0, 0
+1, 1
+w1, 5
+0, 0
+0, 0

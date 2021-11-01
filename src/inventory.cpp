@@ -186,6 +186,7 @@ public:
 	bool deletePart(int, string, string);
 	bool modQty(int, string, string, int);
 	bool isShipped(int, string);
+	bool shipped(int, string);
 	bool deleteOrder(int, string);
 	void printOrders(ostream&) const;
 };
@@ -261,6 +262,17 @@ bool AllOrders::isShipped(int ordnum, string cnum) {
 		}
 	}
 	return shipped;
+}
+
+bool AllOrders::shipped(int ordnum, string cnum) {
+	bool found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			_orders[i]->shipped();
+		}
+	}
+	return found;
 }
 
 bool AllOrders::deleteOrder(int ordnum, string cnum) {
@@ -629,6 +641,44 @@ void receiver(Inventory& inv) {
 	}
 }
 
+void shipper(Inventory& inv, AllOrders& ords) {
+	string partNum, custNum;
+	int qty, ordNum;
+	cout << "Set order status to shipped" << endl;
+	cout << "Enter order number: ";
+	cin >> ordNum;
+	cout << "Enter customer number: ";
+	cin >> custNum;
+	bool shipped = ords.isShipped(ordNum, custNum);
+	if(!shipped) {
+		ords.shipped(ordNum, custNum);
+		cout << "Modify inventory stock" << endl;
+		cout << "Enter part number: ";
+		cin >> partNum;
+		cout << "Enter quantity: ";
+		cin >> qty;
+		inv.modQty(partNum, qty);
+		char choice;
+		cout << "Modify inventory stock of another part? (y/n): ";
+		cin >> choice;
+		while(choice != 'n') {
+			if(choice == 'y') {
+				cout << "Enter part number: ";
+				cin >> partNum;
+				cout << "Enter quantity: ";
+				cin >> qty;
+				inv.modQty(partNum, qty);
+			} else {
+				cout << "Not an option" << endl;
+			}
+			cout << "Modify inventory stock of another part? (y/n): ";
+			cin >> choice;
+		}
+	} else {
+		cout << "Order already shipped" << endl;
+	}
+}
+
 int main() {
 	Inventory inv;
 	AllOrders ords;
@@ -660,7 +710,25 @@ int main() {
 			csr(ords);
 		} else if(option == 2) {
 			receiver(inv);
+		} else if(option == 3) {
+			shipper(inv, ords);
+		} else if(option == 4) {
+			cout << "Inventory" << endl;
+			inv.printInventory(cout);
+			cout << "\nOrders" << endl;
+			ords.printOrders(cout);
+			cout << "\nCustomers" << endl;
+			custs.printCustomers(cout);
+		} else {
+			cout << "Not an option" << endl;
 		}
+		cout << "Enter number to choose option" << endl;
+		cout << "1) Customer Service Rep" << endl;
+		cout << "2) Warehouse Receiver" << endl;
+		cout << "3) Warehouse Shipper" << endl;
+		cout << "4) Dump Data" << endl;
+		cout << "5) Exit" << endl;
+		cin >> option;
 	}
 
 	return 0;

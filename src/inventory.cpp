@@ -41,7 +41,8 @@ public:
 	Inventory(const Inventory& b);
 	const Inventory& operator=(const Inventory& b);
 	void addPart(string, string, int);
-	bool modQty(string, int);
+	bool incQty(string, int);
+	bool decQty(string, int);
 	bool deletePart(string);
 	void printInventory(ostream&) const;
 };
@@ -75,12 +76,27 @@ void Inventory::addPart(string p, string d, int s){
 	_inv.push_back(ptr);
 }
 
-bool Inventory::modQty(string p, int q) {
+bool Inventory::incQty(string p, int inc) {
 	bool found = false;
+	int qty;
 	for (int i = 0; (i < _inv.size() && !found); i++){
 		if (_inv[i]->getPartNum() == p){
 			found = true;
-			_inv[i]->setStock(q);
+			qty = _inv[i]->getStock();
+			_inv[i]->setStock(qty + inc);
+		}
+	}
+	return found;
+}
+
+bool Inventory::decQty(string p, int dec) {
+	bool found = false;
+	int qty;
+	for (int i = 0; (i < _inv.size() && !found); i++){
+		if (_inv[i]->getPartNum() == p){
+			found = true;
+			qty = _inv[i]->getStock();
+			_inv[i]->setStock(qty - dec);
 		}
 	}
 	return found;
@@ -189,6 +205,7 @@ public:
 	bool isShipped(int, string);
 	bool shipped(int, string);
 	bool deleteOrder(int, string);
+	bool printOrder(int, string, ostream&);
 	void printOrders(ostream&) const;
 };
 
@@ -283,6 +300,17 @@ bool AllOrders::deleteOrder(int ordnum, string cnum) {
 			found = true;
 			delete _orders[i];
 			_orders.erase(_orders.begin() + i);
+		}
+	}
+	return found;
+}
+
+bool AllOrders::printOrder(int ordnum, string cnum, ostream& os) {
+	bool found = false;
+	for(int i = 0; (i < _orders.size() && !found); i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			_orders[i]->printOrder(os);
 		}
 	}
 	return found;
@@ -629,9 +657,9 @@ void receiver(Inventory& inv) {
 		} else if(option == 2) {
 			cout << "Enter part number: ";
 			cin >> partNum;
-			cout << "Enter quantity: ";
+			cout << "Enter quantity to add: ";
 			cin >> qty;
-			inv.modQty(partNum, qty);
+			inv.incQty(partNum, qty);
 		} else {
 			cout << "Not an option" << endl;
 		}
@@ -654,14 +682,16 @@ void shipper(Inventory& inv, AllOrders& ords) {
 	bool shipped = ords.isShipped(ordNum, custNum);
 	if(!shipped) {
 		ords.shipped(ordNum, custNum);
-		cout << "Modify inventory stock" << endl;
+		cout << "\nOrder processed: " << endl;
+		ords.printOrder(ordNum, custNum, cout);
+		cout << "\nDecrement inventory stock" << endl;
 		cout << "Enter part number: ";
 		cin >> partNum;
-		cout << "Enter quantity: ";
+		cout << "Enter quantity to subtract: ";
 		cin >> qty;
-		inv.modQty(partNum, qty);
+		inv.decQty(partNum, qty);
 		char choice;
-		cout << "Modify inventory stock of another part? (y/n): ";
+		cout << "Decrement inventory stock of another part? (y/n): ";
 		cin >> choice;
 		while(choice != 'n') {
 			if(choice == 'y') {
@@ -669,11 +699,11 @@ void shipper(Inventory& inv, AllOrders& ords) {
 				cin >> partNum;
 				cout << "Enter quantity: ";
 				cin >> qty;
-				inv.modQty(partNum, qty);
+				inv.decQty(partNum, qty);
 			} else {
 				cout << "Not an option" << endl;
 			}
-			cout << "Modify inventory stock of another part? (y/n): ";
+			cout << "Decrement inventory stock of another part? (y/n): ";
 			cin >> choice;
 		}
 	} else {

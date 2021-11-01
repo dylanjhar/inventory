@@ -101,8 +101,9 @@ bool Inventory::deletePart(string p){
 void Inventory::printInventory(ostream& os) const {
 	os << "\nCurrent Inventory File" << endl;
 	for (int i = 0; i < _inv.size(); i++){
-		os << "Part: " << _inv[i]->getPartNum() <<
-			" Stock Qty: " << _inv[i]->getStock() << endl;
+		os << "\nPart: " << _inv[i]->getPartNum() << endl;
+		os << "Description: " << _inv[i]->getDesc() << endl;
+		os << "Stock Qty: " << _inv[i]->getStock() << endl;
 	}
 }
 
@@ -163,7 +164,7 @@ bool Order::modQty(string p, int q) {
 }
 
 void Order::printOrder(ostream& os) const {
-	os << "Order number: " << _ordnum << endl;
+	os << "\nOrder number: " << _ordnum << endl;
 	os << "Customer number: " << _cnum << endl;
 	os << "Shipped: " << _shipped << endl;
 	for(int i = 0; i < _parts.size(); i++) {
@@ -324,10 +325,10 @@ Address::Address(string street, string city, string state, string zip) {
 }
 
 void Address::printAddress(ostream& os) const {
-	os << "Street: " << _street;
-	os << "City: " << _city;
-	os << "State: " << _state;
-	os << "Zip: " << _zip;
+	os << "Street: " << _street << endl;
+	os << "City: " << _city << endl;
+	os << "State: " << _state << endl;
+	os << "Zip: " << _zip << endl;
 }
 
 //CLASS CUSTOMER
@@ -353,7 +354,7 @@ Customer::Customer(string cnum, string str, string cit, string st, string zip) {
 }
 
 void Customer::printCustomer(ostream& os) const {
-	os << "Customer number: " << _cnum << endl;
+	os << "\nCustomer number: " << _cnum << endl;
 	_addr.printAddress(os);
 }
 
@@ -431,7 +432,7 @@ void loadInv(Inventory& inv, ifstream& infile) {
 	getline(ss, desc, ',');
 	getline(ss, stock, ',');
 	while(partNum != "0" && desc != "0" && stock != "0") {
-		inv.addPart(partNum, desc, stoi(stock));
+		inv.addPart(partNum, desc.substr(1), stoi(stock));
 
 		getline(infile, line);
 		stringstream ss(line);
@@ -453,7 +454,8 @@ void loadCusts(AllCustomers& custs, ifstream& infile) {
 	getline(ss, state, ',');
 	getline(ss, zip, ',');
 	while(custNum != "0" && street != "0" && city != "0" && state != "0" && zip != "0") {
-		custs.addCustomer(custNum, street, city, state, zip);
+		custs.addCustomer(custNum, street.substr(1), city.substr(1),
+				state.substr(1), zip.substr(1));
 		getline(infile, line);
 		stringstream ss(line);
 
@@ -473,14 +475,14 @@ void loadOrds(AllOrders& ords, ifstream& infile) {
 	getline(ss, ordNum, ',');
 	getline(ss, custNum, ',');
 	while(ordNum != "0" && custNum != "0") {
-		ords.addOrder(stoi(ordNum), custNum);
+		ords.addOrder(stoi(ordNum), custNum.substr(1));
 		getline(infile, line);
 		stringstream ss(line);
 
 		getline(ss, partNum, ',');
 		getline(ss, qty, ',');
 		while(partNum != "0" && qty != "0") {
-			ords.addPart(stoi(ordNum), custNum, partNum, stoi(qty));
+			ords.addPart(stoi(ordNum), custNum.substr(1), partNum, stoi(qty));
 			getline(infile, line);
 			stringstream ss(line);
 
@@ -498,7 +500,7 @@ void loadOrds(AllOrders& ords, ifstream& infile) {
 void csrAdd(AllOrders& ords) {
 	string custNum, partNum;
 	int ordNum, qty;
-	cout << "Enter order number: ";
+	cout << "\nEnter order number: ";
 	cin >> ordNum;
 	cout << "Enter customer number: ";
 	cin >> custNum;
@@ -509,7 +511,7 @@ void csrAdd(AllOrders& ords) {
 	cin >> qty;
 	ords.addPart(ordNum, custNum, partNum, qty);
 	char choice;
-	cout << "Enter another part? (y/n): ";
+	cout << "\nEnter another part? (y/n): ";
 	cin >> choice;
 	while(choice != 'n') {
 		if(choice == 'y') {
@@ -521,7 +523,7 @@ void csrAdd(AllOrders& ords) {
 		} else {
 			cout << "Not an option" << endl;
 		}
-		cout << "Enter another part? (y/n): ";
+		cout << "\nEnter another part? (y/n): ";
 		cin >> choice;
 	}
 }
@@ -529,13 +531,13 @@ void csrAdd(AllOrders& ords) {
 void csrMod(AllOrders& ords) {
 	string custNum, partNum;
 	int ordNum, qty;
-	cout << "Enter order number: ";
+	cout << "\nEnter order number: ";
 	cin >> ordNum;
 	cout << "Enter customer number: ";
 	cin >> custNum;
 	bool shipped = ords.isShipped(ordNum, custNum);
 	if(!shipped) {
-		cout << "Enter number to choose option" << endl;
+		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Add part" << endl;
 		cout << "2) Delete part" << endl;
 		cout << "3) Modify quantity" << endl;
@@ -556,7 +558,7 @@ void csrMod(AllOrders& ords) {
 			} else {
 				cout << "Not an option" << endl;
 			}
-			cout << "Enter number to choose option" << endl;
+			cout << "\nEnter number to choose option" << endl;
 			cout << "1) Add part" << endl;
 			cout << "2) Delete part" << endl;
 			cout << "3) Modify quantity" << endl;
@@ -569,7 +571,7 @@ void csrMod(AllOrders& ords) {
 }
 
 void csr(AllOrders& ords) {
-	cout << "Enter number to choose option" << endl;
+	cout << "\nEnter number to choose option" << endl;
 	cout << "1) Add order" << endl;
 	cout << "2) Delete order" << endl;
 	cout << "3) Modify order" << endl;
@@ -597,7 +599,7 @@ void csr(AllOrders& ords) {
 		} else {
 			cout << "Not an option" << endl;
 		}
-		cout << "Enter number to choose option" << endl;
+		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Add order" << endl;
 		cout << "2) Delete order" << endl;
 		cout << "3) Modify order" << endl;
@@ -607,7 +609,7 @@ void csr(AllOrders& ords) {
 }
 
 void receiver(Inventory& inv) {
-	cout << "Enter number to choose option" << endl;
+	cout << "\nEnter number to choose option" << endl;
 	cout << "1) Add part" << endl;
 	cout << "2) Add stock" << endl;
 	cout << "3) Return to main menu" << endl;
@@ -633,7 +635,7 @@ void receiver(Inventory& inv) {
 		} else {
 			cout << "Not an option" << endl;
 		}
-		cout << "Enter number to choose option" << endl;
+		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Add part" << endl;
 		cout << "2) Add stock" << endl;
 		cout << "3) Return to main menu" << endl;
@@ -644,7 +646,7 @@ void receiver(Inventory& inv) {
 void shipper(Inventory& inv, AllOrders& ords) {
 	string partNum, custNum;
 	int qty, ordNum;
-	cout << "Set order status to shipped" << endl;
+	cout << "\nSet order status to shipped" << endl;
 	cout << "Enter order number: ";
 	cin >> ordNum;
 	cout << "Enter customer number: ";
@@ -685,7 +687,7 @@ int main() {
 	AllCustomers custs;
 
 	string file;
-	cout << "Enter the data file: " << endl;
+	cout << "Enter the data file: ";
 	cin >> file;
 	ifstream infile(file);
 	if(!infile) {
@@ -697,7 +699,7 @@ int main() {
 	loadCusts(custs, infile);
 	loadOrds(ords, infile);
 
-	cout << "Enter number to choose option" << endl;
+	cout << "\nEnter number to choose option" << endl;
 	cout << "1) Customer Service Rep" << endl;
 	cout << "2) Warehouse Receiver" << endl;
 	cout << "3) Warehouse Shipper" << endl;
@@ -713,16 +715,13 @@ int main() {
 		} else if(option == 3) {
 			shipper(inv, ords);
 		} else if(option == 4) {
-			cout << "Inventory" << endl;
 			inv.printInventory(cout);
-			cout << "\nOrders" << endl;
 			ords.printOrders(cout);
-			cout << "\nCustomers" << endl;
 			custs.printCustomers(cout);
 		} else {
 			cout << "Not an option" << endl;
 		}
-		cout << "Enter number to choose option" << endl;
+		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Customer Service Rep" << endl;
 		cout << "2) Warehouse Receiver" << endl;
 		cout << "3) Warehouse Shipper" << endl;

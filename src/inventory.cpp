@@ -2,7 +2,9 @@
 // Name        : inventory.cpp
 // Assignment  : #4
 // Author      : Dylan Harper
-// Description : Hello World in C++, Ansi-style
+// Description : A menu driven order entry system that allows various users
+//				 to interact with it. This system is used to keep track of
+//				 customers, their orders for parts, and warehouse inventory.
 //============================================================================
 
 #include <iostream>
@@ -138,14 +140,15 @@ public:
 	void setOrdnum(int o){_ordnum = o;}
 	void setCnum(string c){_cnum = c;}
 	void shipped() {_shipped = true;}
-	int getOrdnum(){return _ordnum;}
-	string getCnum(){return _cnum;}
-	bool isShipped() {return _shipped;}
+	int getOrdnum() const {return _ordnum;}
+	string getCnum() const {return _cnum;}
+	bool isShipped() const {return _shipped;}
 	void addPart(string p, int q) {
 		_parts.push_back(p);
 		_qtys.push_back(q);
 	}
 	bool deletePart(string);
+	bool findPart(string);
 	bool modQty(string, int);
 	void printOrder(ostream&) const;
 };
@@ -167,6 +170,17 @@ bool Order::deletePart(string p) {
 	}
 	return found;
 }
+
+bool Order::findPart(string p) {
+	bool found = false;
+	for (int i = 0; (i < _parts.size() && !found); i++){
+		if (_parts[i] == p){
+			found = true;
+		}
+	}
+	return found;
+}
+
 
 bool Order::modQty(string p, int q) {
 	bool found = false;
@@ -201,11 +215,13 @@ public:
 	void addOrder(int, string);
 	bool addPart(int, string, string, int);
 	bool deletePart(int, string, string);
+	bool findPart(int, string, string);
 	bool modQty(int, string, string, int);
-	bool isShipped(int, string);
+	bool isShipped(int, string) const;
 	bool shipped(int, string);
+	bool findOrder(int, string);
 	bool deleteOrder(int, string);
-	bool printOrder(int, string, ostream&);
+	bool printOrder(int, string, ostream&) const;
 	void printOrders(ostream&) const;
 };
 
@@ -260,6 +276,17 @@ bool AllOrders::deletePart(int ordnum, string cnum, string partNum) {
 	return found;
 }
 
+bool AllOrders::findPart(int ordnum, string cnum, string partNum) {
+	bool found = false, exist = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+			bool exist = _orders[i]->findPart(partNum);
+		}
+	}
+	return exist;
+}
+
 bool AllOrders::modQty(int ordnum, string cnum, string partNum, int qty) {
 	bool found = false;
 	for(int i = 0; i < _orders.size() && !found; i++) {
@@ -271,7 +298,7 @@ bool AllOrders::modQty(int ordnum, string cnum, string partNum, int qty) {
 	return found;
 }
 
-bool AllOrders::isShipped(int ordnum, string cnum) {
+bool AllOrders::isShipped(int ordnum, string cnum) const {
 	bool shipped = false, found = false;
 	for(int i = 0; i < _orders.size() && !found; i++) {
 		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
@@ -293,6 +320,16 @@ bool AllOrders::shipped(int ordnum, string cnum) {
 	return found;
 }
 
+bool AllOrders::findOrder(int ordnum, string cnum) {
+	bool found = false;
+	for(int i = 0; i < _orders.size() && !found; i++) {
+		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
+			found = true;
+		}
+	}
+	return found;
+}
+
 bool AllOrders::deleteOrder(int ordnum, string cnum) {
 	bool found = false;
 	for(int i = 0; (i < _orders.size() && !found); i++) {
@@ -305,7 +342,7 @@ bool AllOrders::deleteOrder(int ordnum, string cnum) {
 	return found;
 }
 
-bool AllOrders::printOrder(int ordnum, string cnum, ostream& os) {
+bool AllOrders::printOrder(int ordnum, string cnum, ostream& os) const {
 	bool found = false;
 	for(int i = 0; (i < _orders.size() && !found); i++) {
 		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
@@ -338,10 +375,10 @@ public:
 	void setCity(string c) {_city = c;}
 	void setState(string s) {_state = s;}
 	void setZip(string z) {_zip = z;}
-	string getStreet() {return _street;}
-	string getCity() {return _city;}
-	string getState() {return _state;}
-	string getZip() {return _zip;}
+	string getStreet() const {return _street;}
+	string getCity() const {return _city;}
+	string getState() const {return _state;}
+	string getZip() const {return _zip;}
 	void printAddress(ostream&) const;
 };
 
@@ -369,7 +406,7 @@ public:
 	Customer(){}
 	Customer(string, string, string, string, string);
 	void setCnum(string c) {_cnum = c;}
-	string getCnum() {return _cnum;}
+	string getCnum() const {return _cnum;}
 	void printCustomer(ostream&) const;
 };
 
@@ -451,6 +488,9 @@ void AllCustomers::printCustomers(ostream& os) const {
 
 //MAIN
 
+//pre: first param is a newly instantiated Inventory object, second param is an input file
+//	   containing data to populate the member variables in the objects
+//post: The Inventory object's member variables are populated
 void loadInv(Inventory& inv, ifstream& infile) {
 	string line, partNum, desc, stock;
 	getline(infile, line);
@@ -471,6 +511,9 @@ void loadInv(Inventory& inv, ifstream& infile) {
 	}
 }
 
+//pre: first param is a newly instantiated AllCustomers object, second param is an input file
+//	   containing data to populate the member variables in the objects
+//post: The AllCustomers object's member variables are populated
 void loadCusts(AllCustomers& custs, ifstream& infile) {
 	string line, custNum, street, city, state, zip;
 	getline(infile, line);
@@ -495,6 +538,9 @@ void loadCusts(AllCustomers& custs, ifstream& infile) {
 	}
 }
 
+//pre: first param is a newly instantiated AllOrders object, second param is an input file
+//	   containing data to populate the member variables in the objects
+//post: The AllOrders object's member variables are populated
 void loadOrds(AllOrders& ords, ifstream& infile) {
 	string line, ordNum, custNum, partNum, qty;
 	getline(infile, line);
@@ -525,6 +571,9 @@ void loadOrds(AllOrders& ords, ifstream& infile) {
 	}
 }
 
+//pre: first param is the AllOrders object with populated member variables
+//post: A new Order object is created and populated. The Allorders object has a pointer
+//	    pointing to the new Order object
 void csrAdd(AllOrders& ords) {
 	string custNum, partNum;
 	int ordNum, qty;
@@ -549,13 +598,15 @@ void csrAdd(AllOrders& ords) {
 			cin >> qty;
 			ords.addPart(ordNum, custNum, partNum, qty);
 		} else {
-			cout << "Not an option" << endl;
+			cout << "\nNot an option" << endl;
 		}
 		cout << "\nEnter another part? (y/n): ";
 		cin >> choice;
 	}
 }
 
+//pre: first param is the AllOrders object with populated member variables
+//post: An Order object being pointed to by the AllOrders object has it's member variables modified
 void csrMod(AllOrders& ords) {
 	string custNum, partNum;
 	int ordNum, qty;
@@ -563,41 +614,53 @@ void csrMod(AllOrders& ords) {
 	cin >> ordNum;
 	cout << "Enter customer number: ";
 	cin >> custNum;
-	bool shipped = ords.isShipped(ordNum, custNum);
-	if(!shipped) {
-		cout << "\nEnter number to choose option" << endl;
-		cout << "1) Add part" << endl;
-		cout << "2) Delete part" << endl;
-		cout << "3) Modify quantity" << endl;
-		cout << "4) Return to last menu" << endl;
-		int option;
-		cin >> option;
-		while(option != 4) {
-			cout << "Enter part number: ";
-			cin >> partNum;
-			cout << "Enter quantity: ";
-			cin >> qty;
-			if(option == 1) {
-				ords.addPart(ordNum, custNum, partNum, qty);
-			} else if(option == 2) {
-				ords.deletePart(ordNum, custNum, partNum);
-			} else if(option == 3) {
-				ords.modQty(ordNum, custNum, partNum, qty);
-			} else {
-				cout << "Not an option" << endl;
-			}
+	if(!ords.findOrder(ordNum, custNum)) {
+		cout << "\nOrder does not exist" << endl;
+		cout << "Returning to last menu" << endl;
+	} else {
+		bool shipped = ords.isShipped(ordNum, custNum);
+		if(!shipped) {
 			cout << "\nEnter number to choose option" << endl;
 			cout << "1) Add part" << endl;
 			cout << "2) Delete part" << endl;
 			cout << "3) Modify quantity" << endl;
 			cout << "4) Return to last menu" << endl;
+			int option;
 			cin >> option;
+			while(option != 4) {
+				cout << "\nEnter part number: ";
+				cin >> partNum;
+				if(option == 1) {
+					cout << "Enter quantity: ";
+					cin >> qty;
+					ords.addPart(ordNum, custNum, partNum, qty);
+				} else if(!ords.findPart(ordNum, custNum, partNum)) {
+					cout << "\nPart does not exist in order" << endl;
+				} else if(option == 2) {
+					ords.deletePart(ordNum, custNum, partNum);
+				} else if(option == 3) {
+					cout << "Enter new quantity: ";
+					cin >> qty;
+					ords.modQty(ordNum, custNum, partNum, qty);
+				} else {
+					cout << "\nNot an option" << endl;
+				}
+				cout << "\nEnter number to choose option" << endl;
+				cout << "1) Add part" << endl;
+				cout << "2) Delete part" << endl;
+				cout << "3) Modify quantity" << endl;
+				cout << "4) Return to last menu" << endl;
+				cin >> option;
+			}
+		} else {
+			cout << "\nOrder already shipped" << endl;
 		}
-	} else {
-		cout << "Order already shipped" << endl;
 	}
 }
 
+//pre: first param is the AllOrders object with populated member variables
+//post: A new Order object being pointed to by the AllOrders object is created and populated,
+//		an existing Order object is deleted or modified
 void csr(AllOrders& ords) {
 	cout << "\nEnter number to choose option" << endl;
 	cout << "1) Add order" << endl;
@@ -612,20 +675,25 @@ void csr(AllOrders& ords) {
 		} else if(option == 2) {
 			string custNum;
 			int ordNum;
-			cout << "Enter order number: ";
+			cout << "\nEnter order number: ";
 			cin >> ordNum;
 			cout << "Enter customer number: ";
 			cin >> custNum;
-			bool shipped = ords.isShipped(ordNum, custNum);
-			if(!shipped) {
-				ords.deleteOrder(ordNum, custNum);
+			if(!ords.findOrder(ordNum, custNum)) {
+				cout << "\nOrder does not exist" << endl;
+				cout << "Returning to last menu" << endl;
 			} else {
-				cout << "Order already shipped" << endl;
+				bool shipped = ords.isShipped(ordNum, custNum);
+				if(!shipped) {
+					ords.deleteOrder(ordNum, custNum);
+				} else {
+					cout << "\nOrder already shipped" << endl;
+				}
 			}
 		} else if(option == 3) {
 			csrMod(ords);
 		} else {
-			cout << "Not an option" << endl;
+			cout << "\nNot an option" << endl;
 		}
 		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Add order" << endl;
@@ -636,6 +704,9 @@ void csr(AllOrders& ords) {
 	}
 }
 
+//pre: first param is the Inventory object with populated member variables
+//post: A new Part object is created and populated, or an existing Part has it's
+//	    member variables modified
 void receiver(Inventory& inv) {
 	cout << "\nEnter number to choose option" << endl;
 	cout << "1) Add part" << endl;
@@ -647,7 +718,7 @@ void receiver(Inventory& inv) {
 		string partNum, desc;
 		int qty;
 		if(option == 1) {
-			cout << "Enter part number: ";
+			cout << "\nEnter part number: ";
 			cin >> partNum;
 			cout << "Enter description: ";
 			cin >> desc;
@@ -655,13 +726,15 @@ void receiver(Inventory& inv) {
 			cin >> qty;
 			inv.addPart(partNum, desc, qty);
 		} else if(option == 2) {
-			cout << "Enter part number: ";
+			cout << "\nEnter part number: ";
 			cin >> partNum;
 			cout << "Enter quantity to add: ";
 			cin >> qty;
-			inv.incQty(partNum, qty);
+			if(!inv.incQty(partNum, qty)) {
+				cout << "\nPart does not exist" << endl;
+			}
 		} else {
-			cout << "Not an option" << endl;
+			cout << "\nNot an option" << endl;
 		}
 		cout << "\nEnter number to choose option" << endl;
 		cout << "1) Add part" << endl;
@@ -671,6 +744,10 @@ void receiver(Inventory& inv) {
 	}
 }
 
+//pre: first param is the Inventory object with populated member variables, second param
+//	   is the Orders object with populated member variables
+//post: Existing Order object and Part objects being pointed to by the Orders object and
+//		Inventory object respectively have their member variables modified
 void shipper(Inventory& inv, AllOrders& ords) {
 	string partNum, custNum;
 	int qty, ordNum;
@@ -679,35 +756,44 @@ void shipper(Inventory& inv, AllOrders& ords) {
 	cin >> ordNum;
 	cout << "Enter customer number: ";
 	cin >> custNum;
-	bool shipped = ords.isShipped(ordNum, custNum);
-	if(!shipped) {
-		ords.shipped(ordNum, custNum);
-		cout << "\nOrder processed: " << endl;
-		ords.printOrder(ordNum, custNum, cout);
-		cout << "\nDecrement inventory stock" << endl;
-		cout << "Enter part number: ";
-		cin >> partNum;
-		cout << "Enter quantity to subtract: ";
-		cin >> qty;
-		inv.decQty(partNum, qty);
-		char choice;
-		cout << "Decrement inventory stock of another part? (y/n): ";
-		cin >> choice;
-		while(choice != 'n') {
-			if(choice == 'y') {
-				cout << "Enter part number: ";
-				cin >> partNum;
-				cout << "Enter quantity: ";
-				cin >> qty;
-				inv.decQty(partNum, qty);
-			} else {
-				cout << "Not an option" << endl;
-			}
-			cout << "Decrement inventory stock of another part? (y/n): ";
-			cin >> choice;
-		}
+	if(!ords.findOrder(ordNum, custNum)) {
+		cout << "\nOrder does not exist" << endl;
+		cout << "Returning to last menu" << endl;
 	} else {
-		cout << "Order already shipped" << endl;
+		if(!ords.isShipped(ordNum, custNum)) {
+			ords.shipped(ordNum, custNum);
+			cout << "\nOrder processed: " << endl;
+			ords.printOrder(ordNum, custNum, cout);
+			cout << "\nDecrement inventory stock" << endl;
+			cout << "Enter part number: ";
+			cin >> partNum;
+			cout << "Enter quantity to subtract: ";
+			cin >> qty;
+			if(!inv.decQty(partNum, qty)) {
+				cout << "\nPart does not exist" << endl;
+			} else {
+				char choice;
+				cout << "\nDecrement inventory stock of another part? (y/n): ";
+				cin >> choice;
+				while(choice != 'n') {
+					if(choice == 'y') {
+						cout << "Enter part number: ";
+						cin >> partNum;
+						cout << "Enter quantity: ";
+						cin >> qty;
+						if(!inv.decQty(partNum, qty)) {
+							cout << "\nPart does not exist" << endl;
+						}
+					} else {
+						cout << "\nNot an option" << endl;
+					}
+					cout << "\nDecrement inventory stock of another part? (y/n): ";
+					cin >> choice;
+				}
+			}
+		} else {
+			cout << "\nOrder already shipped" << endl;
+		}
 	}
 }
 
@@ -716,10 +802,7 @@ int main() {
 	AllOrders ords;
 	AllCustomers custs;
 
-	string file;
-	cout << "Enter the data file: ";
-	cin >> file;
-	ifstream infile(file);
+	ifstream infile("data.txt");
 	if(!infile) {
 		cout << "Unable to get file" << endl;
 		exit(-1);

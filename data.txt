@@ -1,8 +1,31 @@
 w1, short wood block, 52
+w2, medium wood block, 24
+w3, tall wood block, 72
+wh1, small wheel, 105
+wh2, large wheel, 12
+sc20, 20 ct screws, 34
+sc40, 40 ct screws, 21
 0, 0, 0
 1, Short St, Naperville, Illinois, 60540
+2, Apple Ln, Bolingbrook, Illinois, 60490
+3, Buckle St, Joliet, Illinois, 60573
+4, Redbud Rd, Bolingbrook, Illinois, 60490
+5, Woodlet Ln, Aurora, Illinois, 60752
 0, 0, 0, 0, 0
 1, 1
 w1, 5
+w3, 2
+0, 0
+23, 3
+w2, 12
+sc20, 1
+wh1, 4
+wh2, 4
+0,0
+5, 4
+sc40, 3
+w1, 6
+wh1, 8
+w3, 20
 0, 0
 0, 0

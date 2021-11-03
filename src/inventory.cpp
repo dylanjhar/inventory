@@ -281,7 +281,7 @@ bool AllOrders::findPart(int ordnum, string cnum, string partNum) {
 	for(int i = 0; i < _orders.size() && !found; i++) {
 		if(_orders[i]->getOrdnum() == ordnum && _orders[i]->getCnum() == cnum) {
 			found = true;
-			bool exist = _orders[i]->findPart(partNum);
+			exist = _orders[i]->findPart(partNum);
 		}
 	}
 	return exist;
@@ -603,6 +603,7 @@ void csrAdd(AllOrders& ords) {
 		cout << "\nEnter another part? (y/n): ";
 		cin >> choice;
 	}
+	cout << "\nOrder created" << endl;
 }
 
 //pre: first param is the AllOrders object with populated member variables
@@ -634,14 +635,17 @@ void csrMod(AllOrders& ords) {
 					cout << "Enter quantity: ";
 					cin >> qty;
 					ords.addPart(ordNum, custNum, partNum, qty);
+					cout << "\nPart added" << endl;
 				} else if(!ords.findPart(ordNum, custNum, partNum)) {
 					cout << "\nPart does not exist in order" << endl;
 				} else if(option == 2) {
 					ords.deletePart(ordNum, custNum, partNum);
+					cout << "\nPart deleted" << endl;
 				} else if(option == 3) {
 					cout << "Enter new quantity: ";
 					cin >> qty;
 					ords.modQty(ordNum, custNum, partNum, qty);
+					cout << "\nQuantity changed" << endl;
 				} else {
 					cout << "\nNot an option" << endl;
 				}
@@ -686,6 +690,7 @@ void csr(AllOrders& ords) {
 				bool shipped = ords.isShipped(ordNum, custNum);
 				if(!shipped) {
 					ords.deleteOrder(ordNum, custNum);
+					cout << "\nOrder deleted" << endl;
 				} else {
 					cout << "\nOrder already shipped" << endl;
 				}
@@ -725,6 +730,7 @@ void receiver(Inventory& inv) {
 			cout << "Enter quantity: ";
 			cin >> qty;
 			inv.addPart(partNum, desc, qty);
+			cout << "\nPart added" << endl;
 		} else if(option == 2) {
 			cout << "\nEnter part number: ";
 			cin >> partNum;
@@ -732,6 +738,8 @@ void receiver(Inventory& inv) {
 			cin >> qty;
 			if(!inv.incQty(partNum, qty)) {
 				cout << "\nPart does not exist" << endl;
+			} else {
+				cout << "\nQuantity changed" << endl;
 			}
 		} else {
 			cout << "\nNot an option" << endl;
@@ -779,10 +787,12 @@ void shipper(Inventory& inv, AllOrders& ords) {
 					if(choice == 'y') {
 						cout << "Enter part number: ";
 						cin >> partNum;
-						cout << "Enter quantity: ";
+						cout << "Enter quantity to subtract: ";
 						cin >> qty;
 						if(!inv.decQty(partNum, qty)) {
 							cout << "\nPart does not exist" << endl;
+						} else {
+							cout << "\nQuantity changed" << endl;
 						}
 					} else {
 						cout << "\nNot an option" << endl;
